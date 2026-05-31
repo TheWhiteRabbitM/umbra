@@ -1,0 +1,37 @@
+/* Umbra design tokens — raw black & white "terminal brutalist".
+   No brand color: hierarchy comes from contrast, hairlines and inversion. */
+:root {
+  --bg: #000000;
+  --panel: #070707;
+  --panel-2: #0e0e0e;
+  --panel-3: #151515;
+
+  --fg: #fafafa;
+  --dim: #8b8b8b;
+  --faint: #565656;
+
+  --line: #1d1d1d;
+  --line-2: #2c2c2c;
+  --line-3: #3a3a3a;
+
+  /* Inverted block (white on black → black on white) for emphasis/CTAs */
+  --inv-bg: #fafafa;
+  --inv-fg: #000000;
+
+  /* Status is monochrome too: filled = on, hollow = off. A single hair of
+     signal-green is allowed ONLY for the "live network" pulse. */
+  --live: #d6ff2b;
+
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --sans: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* Softened, MD3 / Apple-style rounding (still black & white). */
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-input: 12px;
+  --radius-pill: 999px;
+
+  --maxw: 1320px;
+  --rail: 248px; /* desktop left rail */
+  --aside: 320px; /* desktop right rail */
+}

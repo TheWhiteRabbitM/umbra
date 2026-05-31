@@ -1,0 +1,20 @@
+{
+  "name": "@umbra/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Umbra smart-contract network (IdentityRegistry, Messenger, Payments, AnonymousMail) for Polkadot Hub via Revive/PolkaVM.",
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "hardhat run scripts/deploy.ts --network polkadotHub",
+    "deploy:local": "hardhat run scripts/deploy.ts --network hardhat",
+    "node": "hardhat node"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@parity/hardhat-polkadot": "^0.3.0",
+    "dotenv": "^16.4.7",
+    "hardhat": "^2.26.0",
+    "typescript": "^5.7.0"
+  }
+}
