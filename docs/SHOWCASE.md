@@ -8,8 +8,8 @@ demonstrable without a funded account.
 
 ## Landing
 
-The entry point: a terminal boot screen on a hairline grid. Live block height in
-the top bar, the four pillars below.
+The entry point: an Apple-style hero on a deep gradient — large SF headline with
+a systemBlue accent, glass feature cards, live block height in the top bar.
 
 ![Landing](media/landing.png)
 
@@ -97,12 +97,19 @@ Keyboard-driven navigation and actions — because devs.
 
 ## Mobile (primary target)
 
-Mobile-first layout with a bottom tab bar. Conversation list and a full-screen
-thread with self-destruct, E2E badge and on-chain tx links.
+Mobile-first layout with a bottom tab bar, shown in-device. 🎬 Mobile video:
+[`media/umbra-demo-mobile.webm`](media/umbra-demo-mobile.webm).
 
-| Inbox | Thread | Anonymous mail |
-|---|---|---|
-| ![Mobile messages](media/mobile-messages.png) | ![Mobile thread](media/mobile-thread.png) | ![Mobile mail](media/mobile-mail.png) |
+<p>
+  <img src="media/mock-mobile-messages.png" alt="Mobile — messages" height="440">
+  <img src="media/mock-mobile-thread.png" alt="Mobile — thread" height="440">
+  <img src="media/mock-mobile-mail.png" alt="Mobile — anonymous mail" height="440">
+</p>
+<p>
+  <img src="media/mock-mobile-wallet.png" alt="Mobile — wallet" height="440">
+  <img src="media/mock-mobile-personhood.png" alt="Mobile — personhood" height="440">
+  <img src="media/mock-mobile-network.png" alt="Mobile — network" height="440">
+</p>
 
 ---
 

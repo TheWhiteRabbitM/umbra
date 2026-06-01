@@ -1,0 +1,270 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\Users\\miche\\Downloads\\Polkadot\\contracts\\contracts\\AnonymousMail.sol": {
+      "lastModificationDate": 1780311965414,
+      "contentHash": "57e78be793fadd426e77e48c8ef99f1e",
+      "sourceName": "contracts/AnonymousMail.sol",
+      "solcConfig": {
+        "version": "0.8.26",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IIdentityRegistry.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.26"
+      ],
+      "artifacts": [
+        "AnonymousMail"
+      ]
+    },
+    "C:\\Users\\miche\\Downloads\\Polkadot\\contracts\\contracts\\interfaces\\IIdentityRegistry.sol": {
+      "lastModificationDate": 1780311965420,
+      "contentHash": "a8889e4cce50464a7141da7278f893ec",
+      "sourceName": "contracts/interfaces/IIdentityRegistry.sol",
+      "solcConfig": {
+        "version": "0.8.26",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.26"
+      ],
+      "artifacts": [
+        "IIdentityRegistry"
+      ]
+    },
+    "C:\\Users\\miche\\Downloads\\Polkadot\\contracts\\contracts\\Payments.sol": {
+      "lastModificationDate": 1780311965419,
+      "contentHash": "17a406e5f3c26d8bedd5a02809de5742",
+      "sourceName": "contracts/Payments.sol",
+      "solcConfig": {
+        "version": "0.8.26",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IIdentityRegistry.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.26"
+      ],
+      "artifacts": [
+        "Payments"
+      ]
+    },
+    "C:\\Users\\miche\\Downloads\\Polkadot\\contracts\\contracts\\Messenger.sol": {
+      "lastModificationDate": 1780312536341,
+      "contentHash": "e09d97ade8e35c076522e42fd83afd7d",
+      "sourceName": "contracts/Messenger.sol",
+      "solcConfig": {
+        "version": "0.8.26",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IIdentityRegistry.sol",
+        "./interfaces/IIndividuality.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.26"
+      ],
+      "artifacts": [
+        "Messenger"
+      ]
+    },
+    "C:\\Users\\miche\\Downloads\\Polkadot\\contracts\\contracts\\interfaces\\IIndividuality.sol": {
+      "lastModificationDate": 1780311965422,
+      "contentHash": "eeec2dc21b520055037edf4c0bd447b3",
+      "sourceName": "contracts/interfaces/IIndividuality.sol",
+      "solcConfig": {
+        "version": "0.8.26",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.26"
+      ],
+      "artifacts": [
+        "IIndividuality"
+      ]
+    },
+    "C:\\Users\\miche\\Downloads\\Polkadot\\contracts\\contracts\\Individuality.sol": {
+      "lastModificationDate": 1780311965416,
+      "contentHash": "ab4602f8f85ce8da1159a9c4327e6f63",
+      "sourceName": "contracts/Individuality.sol",
+      "solcConfig": {
+        "version": "0.8.26",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IIndividuality.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.26"
+      ],
+      "artifacts": [
+        "IRingVrfVerifier",
+        "Individuality",
+        "MockRingVrfVerifier"
+      ]
+    },
+    "C:\\Users\\miche\\Downloads\\Polkadot\\contracts\\contracts\\IdentityRegistry.sol": {
+      "lastModificationDate": 1780312523591,
+      "contentHash": "b0e930a3f68cef93605a3f43fe770ef8",
+      "sourceName": "contracts/IdentityRegistry.sol",
+      "solcConfig": {
+        "version": "0.8.26",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IIdentityRegistry.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.26"
+      ],
+      "artifacts": [
+        "IdentityRegistry"
+      ]
+    }
+  }
+}

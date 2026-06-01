@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.26;
 
 /// @title IIdentityRegistry
 /// @notice Minimal view of the identity registry consumed by the other network

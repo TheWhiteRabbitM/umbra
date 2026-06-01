@@ -54,14 +54,14 @@ await d.goto(URL, { waitUntil: "networkidle" });
 await sleep(500);
 await shot(d, "landing");
 
-await clickText(d, "enter demo");
+await clickText(d, "Explore the demo");
 // open first conversation so the thread is populated
 await d.locator(".msg-list .row-item").first().click().catch(() => {});
 await sleep(300);
 // send a message to populate the live activity feed
 const input = d.locator('input[placeholder^="encrypted"]');
 if (await input.count()) {
-  await input.fill("shipping the brutalist UI today. all calls hit Polkadot Hub ⚡");
+  await input.fill("new look just shipped. still end-to-end encrypted ✶");
   await d.locator("text=send").first().click();
   await sleep(1800);
 }
@@ -107,7 +107,7 @@ const mobile = await browser.newContext({ viewport: { width: 390, height: 844 },
 const m = await mobile.newPage();
 await m.goto(URL, { waitUntil: "networkidle" });
 await sleep(400);
-await clickText(m, "enter demo");
+await clickText(m, "Explore the demo");
 await sleep(300);
 await shot(m, "mobile-messages");
 await m.locator(".msg-list .row-item").first().click().catch(() => {});

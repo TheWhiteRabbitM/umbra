@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.26;
 
 import {IIdentityRegistry} from "./interfaces/IIdentityRegistry.sol";
 import {IIndividuality} from "./interfaces/IIndividuality.sol";
@@ -58,7 +58,7 @@ contract Messenger {
         uint256 index
     );
     event MessageBurned(bytes32 indexed conversationId, uint256 indexed index, address indexed by);
-    event ChannelCreated(bytes32 indexed channel, address indexed admin, bool requiresPersonhood);
+    event ChannelCreated(bytes32 indexed channel, address indexed admin, bool requiresPersonhood, uint8 minDim);
 
     error RecipientNotRegistered();
     error ChannelMissing();
@@ -104,7 +104,7 @@ contract Messenger {
             metadataCid: metadataCid,
             exists: true
         });
-        emit ChannelCreated(channel, msg.sender, requiresPersonhood);
+        emit ChannelCreated(channel, msg.sender, requiresPersonhood, channels[channel].minDim);
     }
 
     function sendToChannel(bytes32 channel, string calldata cid, uint64 ttlSeconds)

@@ -33,6 +33,27 @@ The faithful primitives:
   random tattoo pattern — the *Kappa Sigma Mu* society on Kusama), in-person
   personhood gatherings, and higher-assurance verified attestations.
 
+## Notation & guarantees
+
+```
+context    = keccak256(label)                      // bytes32, e.g. a channel id
+nullifier  = ringVRF_eval(sk_person, context)      // deterministic per (person, context)
+proof      = ringVRF_prove(sk_person, peopleRoot, context)
+verify(peopleRoot, context, alias, nullifier, proof) ∈ {true, false}
+```
+
+- **Uniqueness (per context).** `nullifier` is a deterministic function of the
+  person and the context, and the contract marks it spent → a person can hold at
+  most one alias per context (Sybil-resistant), without revealing identity.
+- **Unlinkability (across contexts).** Different `context` ⇒ different
+  `alias`/`nullifier`; the ring proof hides *which* member of `peopleRoot`
+  produced it. Two aliases of the same human cannot be correlated on-chain.
+- **DIM levels.** `dim ∈ {1,2}` rides along the proof; gates compare against a
+  per-resource `minDim` (e.g. channel `minDim`).
+- **Soundness** rests entirely on `verify` and on `peopleRoot` being the genuine
+  People Chain commitment. In this repo `verify` is `MockRingVrfVerifier`
+  (always true) — see "Honesty" below.
+
 ## How Umbra uses it
 
 ```

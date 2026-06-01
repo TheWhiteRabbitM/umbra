@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.26;
 
 import {IIdentityRegistry} from "./interfaces/IIdentityRegistry.sol";
 
@@ -23,6 +23,7 @@ contract IdentityRegistry is IIdentityRegistry {
     error NotOwner();
     error NotAttester();
     error EmptyKey();
+    error NotRegistered();
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
@@ -53,7 +54,7 @@ contract IdentityRegistry is IIdentityRegistry {
     /// @notice Update only the profile CID (avatar/name on the Bulletin Chain).
     function updateProfile(string calldata profileCid) external {
         Profile storage p = _profiles[msg.sender];
-        require(p.registeredAt != 0, "not registered");
+        if (p.registeredAt == 0) revert NotRegistered();
         p.profileCid = profileCid;
         emit ProfileUpdated(msg.sender, profileCid);
     }

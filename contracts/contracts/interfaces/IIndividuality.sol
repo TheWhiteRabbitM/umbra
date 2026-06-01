@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.26;
 
 /// @title IIndividuality
 /// @notice Minimal view of Polkadot's Individuality system (the People Chain) as

@@ -1,62 +1,125 @@
 # Architecture
 
-Umbra is a monorepo: a Solidity contract network on Polkadot Hub + a React
-frontend. Content storage is the Bulletin Chain; confidential off-chain work is
-(planned) Acurast.
+Umbra is a monorepo split into a **Solidity contract network** (Polkadot Hub via
+Revive/PolkaVM) and a **React client** that does all cryptography locally and
+stores ciphertext on the **Bulletin Chain**. Confidential off-chain work
+(anonymous-mail relaying, personhood proofs) is delegated to **Acurast** TEEs and
+the **People Chain**.
 
-## Contract network (Revive / PolkaVM)
+See also: [CONTRACTS.md](CONTRACTS.md) (per-contract reference),
+[SECURITY.md](../SECURITY.md) (crypto/threat model),
+[PRODUCTION.md](PRODUCTION.md) (readiness),
+[ACURAST.md](ACURAST.md), [INDIVIDUALITY.md](INDIVIDUALITY.md).
 
-All four contracts are plain Solidity compiled to PolkaVM via `resolc`. They are
-intentionally small and auditable.
+## Design tenets
 
-```
-IdentityRegistry  (root)
-   ├── encryptionKeyOf / isRegistered / profileOf / personhood
-   │
-   ├──◀ Messenger        sendDirect(to, cid, ttl) · sendToChannel · burn
-   │        reads IdentityRegistry to require recipient keys and gate channels
-   │
-   ├──◀ Payments         tip(to, conversationId, noteCid) payable
-   │        reads IdentityRegistry to validate recipients
-   │
-   └──◀ AnonymousMail    deliver(to, cid, ttl)  ← only authorized relayers
-            no sender field stored; recipient can markRead / burn
-```
+1. **Plaintext is never on-chain.** Only opaque CIDs + minimal metadata.
+2. **Non-custodial.** Keys live in the user's wallet; no server holds secrets.
+3. **Deletion is physical.** Content on the Bulletin Chain is pruned at TTL, not
+   merely hidden.
+4. **Anonymity is structural.** `AnonymousMail` has no sender field; personhood
+   uses unlinkable per-context aliases.
+5. **Minimize trusted parties.** Light-client-first; TEE relays over plaintext
+   relays; the chain as the authorization/index layer, not the data store.
 
-**Why on-chain stores only pointers.** The chain is the index and the access-
-control/authorization layer. The bytes live off-chain (Bulletin), keeping gas
-low and enabling real deletion.
-
-## Storage: Bulletin Chain
-
-- Write-to-chain, read-from-network. `store` → CID; fetch via IPFS gateway /
-  Bitswap / Helia.
-- **Prunable**: data has a retention period and is removed unless `renew`d. This
-  is the deletion primitive (`expiresAt` / `burn` on-chain mirror it).
-- No token, no fees — authorization-based (faucet on TestNet).
-
-## Confidential compute: Acurast (planned)
-
-TEE relays provide sender anonymity for mail and run private scheduled jobs and
-push. Full proposal in [ACURAST.md](ACURAST.md).
-
-## Frontend
-
-- **State**: a single `useApp()` store (wallet, derived E2E keypair, simulated
-  chain, conversations, mail, wallet assets).
-- **Crypto**: `lib/crypto.ts` (NaCl box). **Wallet**: `lib/wallet.ts` (EIP-1193
-  → Polkadot Hub). **Storage**: `lib/bulletin.ts` (mock + real-client stub).
-  **Simulated chain**: `lib/chain.ts` (tx hashes, live block height, fees).
-- **UI**: monochrome terminal/brutalist. Mobile-first (bottom tab bar) with a
-  desktop rail + activity aside above 880/1180px. `⌘K` command palette.
-- **Demo ↔ live**: `contractsDeployed()` flips behavior once
-  `addresses.local.json` holds real addresses.
-
-## Data flow: sending a message
+## Layers & trust boundaries
 
 ```
-type → encryptFor(recipientKey)        // NaCl box, client-side
-     → bulletin.put(ciphertext)        // → CID (Bulletin Chain)
-     → Messenger.sendDirect(to, cid, ttl)   // only the CID + TTL go on-chain
-     → MessageSent event               // peers read & decrypt with their key
+┌─ Client (browser / mobile) — TRUSTED with plaintext & keys ──────────────────┐
+│  React UI · NaCl box E2E (lib/crypto) · key derived from a wallet signature   │
+│  ethers v6 (lib/onchain)         PAPI (lib/bulletin-papi)     relay client     │
+└───────┬───────────────────────────────┬───────────────────────────┬──────────┘
+        │ EVM-RPC (eth_*)                │ Substrate tx               │ HTTPS (sealed)
+┌───────▼──────────┐           ┌─────────▼──────────┐        ┌────────▼─────────┐
+│  Polkadot Hub    │           │  Bulletin Chain    │        │  Acurast (TEE)   │
+│  Revive / PolkaVM │           │  TransactionStorage │        │  relay job       │
+│  ── contracts ──  │           │  (prunable blobs)   │        │  (sender-blind)  │
+│  IdentityRegistry │◀──reads── │                     │        └────────┬─────────┘
+│  Individuality ◀──┼──gate──┐  └─────────────────────┘                 │ deliver()
+│  Messenger        │        │            ▲ store/CID                    │
+│  Payments         │        └─ People Chain (ring-VRF, DIM1/DIM2) ◀ root │
+│  AnonymousMail ◀──┼──────────────────────────────────────────────────-┘
+└──────────────────┘
 ```
+
+**Trust:** the client is trusted with plaintext and the E2E key. The chain sees
+only CIDs/metadata. The Bulletin Chain stores ciphertext (confidential by
+encryption, not by access control). The Acurast relay is trusted only for
+*availability*; confidentiality/anonymity hold because it runs in a TEE and the
+content is sealed before it arrives.
+
+## Accounts
+
+- **EVM account** (MetaMask/Talisman) signs Revive contract calls on Polkadot Hub.
+- **E2E key**: an X25519 keypair derived deterministically from a one-time wallet
+  signature (`KEY_DERIVATION_MESSAGE`), so there is no second secret to manage.
+- **Substrate signer** (separate) is required for Bulletin `store`. Reconciling
+  the two account models is a production task (see PRODUCTION.md).
+
+## Data model
+
+- **DM**: `conversationId = keccak256("dm", min(a,b), max(a,b))` → append-only
+  `Message[]`. Each message: `{from, to, channel:0, cid, sentAt, expiresAt, burned}`.
+- **Channel**: `channel` (bytes32) is both the thread id **and** the Individuality
+  context. `{admin, requiresPersonhood, minDim, metadataCid}`.
+- **Mail**: per-recipient append-only `Mail[]` with **no sender**:
+  `{cid, deliveredAt, expiresAt, read, burned}`.
+- **Alias**: `(context, aliasAccount) → {dim, since, active}` + spent nullifiers.
+- **Off-chain blob** (Bulletin): `EncryptedPayload {v, nonce, ephemeralPubKey,
+  ciphertext}`, optionally `+ self` (a copy sealed to the sender). See SECURITY.
+
+## Key flows
+
+**Send a DM (live mode)** — `lib/onchain.ts#sendDirectOnchain`:
+```
+1. key = IdentityRegistry.encryptionKeyOf(to)
+2. blob = NaCl.box(plaintext, key); blob.self = NaCl.box(plaintext, myKey)
+3. cid = Bulletin.store(blob)                       // PAPI; CIDv1(raw,sha256)
+4. Messenger.sendDirect(to, cid, ttl)               // only the CID hits chain
+5. peers read MessageSent → Bulletin.get(cid) → NaCl.box_open(my secret)
+```
+
+**Send anonymous mail** — `lib/relay.ts` + `acurast/relay.job.ts`:
+```
+1. key = IdentityRegistry.encryptionKeyOf(to)
+2. sealed = NaCl.box({subject,body}, key)           // opaque to the relay
+3. POST sealed → Acurast TEE relay (anonymized transport)
+4. relay: cid = Bulletin.store(sealed); AnonymousMail.deliver(to, cid, expiry)
+   → msg.sender = relay, never the author; no sender field is stored
+```
+
+**Claim a contextual alias** — `Individuality.registerAlias`:
+```
+context   = keccak256(contextLabel)
+nullifier = ringVRF(personSecret, context)          // deterministic per person
+verifier.verify(peopleRoot, context, aliasAccount, nullifier, proof) == true
+→ one alias per (person, context); unlinkable across contexts
+```
+
+## Frontend internals
+
+- **Store**: a single `useApp()` hook holds wallet connection, the derived E2E
+  keypair, the simulated chain (live block height + tx activity), conversations,
+  mail, wallet assets and contextual aliases. Actions branch on `liveMode`
+  (`contractsDeployed() && wallet`).
+- **lib/**: `wallet.ts` (EIP-1193 → Polkadot Hub), `crypto.ts` (NaCl box),
+  `bulletin.ts` (mock + lazy real client), `bulletin-papi.ts` (real PAPI store),
+  `onchain.ts` (ethers contract calls), `relay.ts` (Acurast client),
+  `chain.ts` (demo tx/block simulation).
+- **UI**: flat, minimalist, **strictly black & white** with **soft rounded
+  corners**; hairline borders, mono-forward type, no blur/shadow/gradient/colour.
+  Mobile-first (bottom tab bar) + desktop rail/aside above 880/1180px. `⌘K`
+  command palette.
+- **Demo ↔ live**: demo uses real crypto + a mock Bulletin (localStorage) + a
+  simulated chain (`lib/chain.ts`: tx hashes, ticking block height, fees). Live
+  mode runs the real calls in `lib/onchain.ts` / `relay.ts`.
+
+## Build, test, deploy
+
+- **Contracts**: `npm run contracts:build` (Hardhat + resolc → PolkaVM),
+  `npm test --workspace contracts` (12 tests), `npm run contracts:deploy`
+  (deploys in order, writes `frontend/src/contracts/addresses.local.json` + ABIs).
+- **Frontend**: `npm run dev` / `npm run build` (Vite, base `./` for GitHub
+  Pages). `npm run shots` regenerates `docs/media/` via Playwright.
+- **CI**: `.github/workflows/ci.yml` (contract tests + frontend build),
+  `.github/workflows/pages.yml` (publishes the demo).

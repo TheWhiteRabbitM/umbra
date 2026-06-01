@@ -75,6 +75,28 @@ it" category — and genuinely private.
 
 ---
 
+## Wire protocol & guarantees
+
+```
+RelayRequest = { to: address, sealed: NaClBox, ttlSeconds: uint }
+  sealed = NaCl.box({subject, body}, recipientEncryptionKey)   // opaque to relay
+Client → (anonymized transport, e.g. Tor/VPN) → Acurast job (TEE)
+Job (inside enclave):
+  cid       = Bulletin.store(sealed)                            // pin ciphertext
+  expiresAt = ttl==0 ? 0 : now + ttl
+  AnonymousMail.deliver(to, cid, expiresAt)                     // msg.sender = relay
+Response = { ok, index }
+```
+
+- **Confidentiality**: the relay only ever holds `sealed` (ciphertext to the
+  recipient's key); it cannot read content.
+- **Sender unlinkability (on-chain)**: submission is by the relayer account and
+  `AnonymousMail` stores no `from` — structural, verifiable in the contract.
+- **Sender unlinkability (off-chain)**: the enclave + attestation mean the relay
+  *operator* can't log the author either; strength scales with the **anonymity
+  set** (concurrent users) and the number of independent relays (chain ≥2 for a
+  mixnet effect). Use an anonymizing transport for the IP layer.
+
 ## Trust model & honesty
 
 - TEEs reduce trust, they don't eliminate it: you trust the silicon vendor's
@@ -98,6 +120,12 @@ export default async function relay(req) {
   return { ok: true };                             // no sender is ever recorded
 }
 ```
+
+A working version of this job lives at [`acurast/relay.job.ts`](../acurast/relay.job.ts),
+with the client that seals + submits to it at
+[`frontend/src/lib/relay.ts`](../frontend/src/lib/relay.ts). Set
+`VITE_ACURAST_RELAY_URL` to the deployed endpoint to enable live anonymous mail;
+without it the app simulates the relay in demo mode.
 
 > Deploy with the Acurast CLI/SDK; the processor runs it in its TEE and returns
 > an on-chain execution proof. See https://docs.acurast.com/.
