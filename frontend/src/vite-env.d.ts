@@ -4,6 +4,8 @@ interface ImportMetaEnv {
   readonly VITE_POLKADOT_HUB_RPC_URL?: string;
   readonly VITE_POLKADOT_HUB_CHAIN_ID?: string;
   readonly VITE_BULLETIN_IPFS_GATEWAY?: string;
+  readonly VITE_BULLETIN_WS_URL?: string;
+  readonly VITE_ACURAST_RELAY_URL?: string;
 }
 
 interface ImportMeta {

@@ -12,9 +12,12 @@ export function TopBar({ store }: { store: AppStore }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "10px 14px",
+        padding: "11px 16px",
         gap: 12,
         background: "var(--bg)",
+        position: "sticky",
+        top: 0,
+        zIndex: 20,
       }}
     >
       {/* Logo shows on mobile (rail hides it on desktop is fine — duplicate is ok) */}

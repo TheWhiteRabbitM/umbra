@@ -39,6 +39,7 @@ export const MESSENGER_ABI = [
   "function getMessages(bytes32 conversationId, uint256 offset, uint256 limit) view returns (tuple(address from, address to, bytes32 channel, string cid, uint64 sentAt, uint64 expiresAt, bool burned)[])",
   "event MessageSent(bytes32 indexed conversationId, address indexed from, address indexed to, bytes32 channel, string cid, uint64 expiresAt, uint256 index)",
   "event MessageBurned(bytes32 indexed conversationId, uint256 indexed index, address indexed by)",
+  "event ChannelCreated(bytes32 indexed channel, address indexed admin, bool requiresPersonhood, uint8 minDim)",
 ];
 
 export const PAYMENTS_ABI = [

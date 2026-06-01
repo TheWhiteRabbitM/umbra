@@ -23,7 +23,7 @@ export function MailView({ store }: { store: AppStore }) {
       </div>
 
       {composing ? (
-        <Compose onSend={(s, b) => { sendMail(s, b); setComposing(false); }} onCancel={() => setComposing(false)} />
+        <Compose onSend={(s, b, to) => { sendMail(s, b, to); setComposing(false); }} onCancel={() => setComposing(false)} />
       ) : open ? (
         <Reader
           m={open}
@@ -97,7 +97,7 @@ function Reader({ m, onBack, onBurn }: { m: MailMessage; onBack: () => void; onB
   );
 }
 
-function Compose({ onSend, onCancel }: { onSend: (s: string, b: string) => void; onCancel: () => void }) {
+function Compose({ onSend, onCancel }: { onSend: (s: string, b: string, to: string) => void; onCancel: () => void }) {
   const [subject, setSubject] = useState("");
   const [to, setTo] = useState("");
   const [body, setBody] = useState("");
@@ -125,7 +125,7 @@ function Compose({ onSend, onCancel }: { onSend: (s: string, b: string) => void;
       <button
         className="btn btn-primary btn-block"
         disabled={!subject.trim() || !body.trim()}
-        onClick={() => onSend(subject.trim(), body.trim())}
+        onClick={() => onSend(subject.trim(), body.trim(), to.trim())}
       >
         send anonymously ↗
       </button>

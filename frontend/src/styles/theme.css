@@ -1,37 +1,53 @@
-/* Umbra design tokens — raw black & white "terminal brutalist".
-   No brand color: hierarchy comes from contrast, hairlines and inversion. */
+/* Umbra design tokens — flat, minimalist, brutalist. Strictly black & white:
+   no colour, no blur, no shadow, no gradient, no rounding. Structure comes from
+   hairlines, contrast and whitespace. */
 :root {
   --bg: #000000;
-  --panel: #070707;
-  --panel-2: #0e0e0e;
-  --panel-3: #151515;
+  --bg-2: #000000;
 
-  --fg: #fafafa;
-  --dim: #8b8b8b;
-  --faint: #565656;
+  /* Flat fills (no glass). */
+  --mat-1: #0a0a0a;
+  --mat-2: #101010;
+  --mat-3: #161616;
+  --glass: #000000;
+  --glass-strong: #000000;
+  --blur: 0px;
 
-  --line: #1d1d1d;
-  --line-2: #2c2c2c;
-  --line-3: #3a3a3a;
+  /* Text ramp. */
+  --fg: #f2f2f2;
+  --dim: #9a9a9a;
+  --faint: #5e5e5e;
 
-  /* Inverted block (white on black → black on white) for emphasis/CTAs */
-  --inv-bg: #fafafa;
+  /* Hairlines. */
+  --line: rgba(255, 255, 255, 0.14);
+  --line-2: rgba(255, 255, 255, 0.22);
+  --line-3: rgba(255, 255, 255, 0.34);
+
+  /* "Accent" is white. No colour anywhere. */
+  --accent: #f2f2f2;
+  --accent-2: #cfcfcf;
+  --accent-soft: rgba(255, 255, 255, 0.1);
+  --accent-grad: #f2f2f2; /* flat white, not a gradient */
+
+  --inv-bg: #f2f2f2;
   --inv-fg: #000000;
+  --live: #f2f2f2;
 
-  /* Status is monochrome too: filled = on, hollow = off. A single hair of
-     signal-green is allowed ONLY for the "live network" pulse. */
-  --live: #d6ff2b;
+  /* Mono-forward (raw/structural); sans only for long message bodies. */
+  --sans: "Inter", -apple-system, system-ui, sans-serif;
+  --mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, monospace;
 
-  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --sans: "Inter", system-ui, -apple-system, sans-serif;
-
-  /* Softened, MD3 / Apple-style rounding (still black & white). */
+  /* Always-soft corners. */
   --radius: 16px;
-  --radius-sm: 10px;
+  --radius-sm: 11px;
   --radius-input: 12px;
   --radius-pill: 999px;
 
+  /* No elevation. */
+  --shadow-1: none;
+  --shadow-accent: none;
+
   --maxw: 1320px;
-  --rail: 248px; /* desktop left rail */
-  --aside: 320px; /* desktop right rail */
+  --rail: 240px;
+  --aside: 312px;
 }

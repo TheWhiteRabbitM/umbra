@@ -13,21 +13,23 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--mono);
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 .sans {
   font-family: var(--sans);
+  letter-spacing: -0.01em;
 }
 
 h1,
 h2,
 h3 {
   margin: 0;
+  font-family: var(--mono);
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 a {
@@ -58,15 +60,15 @@ button {
   background: transparent;
 }
 
-/* Uppercase mono "label" used everywhere for the nerd/terminal feel */
 .mono-label {
   font-size: 10.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--dim);
+  color: var(--faint);
+  font-weight: 500;
 }
 
-/* ── Buttons ─────────────────────────────────────────────────────────────── */
+/* ── Buttons (flat rectangles, hairline borders) ─────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -77,16 +79,16 @@ button {
   color: var(--fg);
   border-radius: var(--radius-pill);
   padding: 9px 16px;
-  font-size: 12.5px;
-  letter-spacing: 0.02em;
+  font-size: 12px;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s, border-color 0.12s, transform 0.06s;
+  transition: background 0.1s linear, color 0.1s linear, border-color 0.1s linear;
 }
 .btn:hover {
   border-color: var(--fg);
 }
 .btn:active {
-  transform: translateY(1px);
+  background: var(--mat-2);
 }
 .btn-primary {
   background: var(--inv-bg);
@@ -96,22 +98,23 @@ button {
 }
 .btn-primary:hover {
   background: #fff;
+  border-color: #fff;
 }
 .btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 .btn-sm {
-  padding: 6px 10px;
-  font-size: 11.5px;
+  padding: 6px 12px;
+  font-size: 11px;
 }
 .btn-block {
   width: 100%;
 }
 
-/* ── Surfaces ────────────────────────────────────────────────────────────── */
+/* ── Surfaces (flat, bordered) ───────────────────────────────────────────── */
 .panel {
-  background: var(--panel);
+  background: var(--mat-1);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
@@ -125,9 +128,10 @@ button {
   align-items: center;
   gap: 6px;
   border: 1px solid var(--line-2);
+  background: transparent;
   border-radius: var(--radius-pill);
   padding: 3px 10px;
-  font-size: 10.5px;
+  font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--dim);
@@ -143,20 +147,16 @@ button {
   font-weight: 700;
 }
 
-/* Static glowing indicator. The live feel comes from the block height ticking
-   up, not a CSS loop — that also keeps the renderer stable for screenshots. */
 .dot-live {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  width: 6px;
+  height: 6px;
   background: var(--live);
-  box-shadow: 0 0 8px var(--live);
 }
 
 input,
 textarea {
   font-family: var(--mono);
-  background: var(--panel-2);
+  background: transparent;
   border: 1px solid var(--line-2);
   border-radius: var(--radius-input);
   color: var(--fg);
@@ -164,6 +164,7 @@ textarea {
   font-size: 13px;
   outline: none;
   width: 100%;
+  transition: border-color 0.1s linear;
 }
 input:focus,
 textarea:focus {
@@ -174,11 +175,11 @@ textarea::placeholder {
   color: var(--faint);
 }
 
-/* Faint terminal grid background for empty/hero areas */
 .grid-bg {
-  background-image: linear-gradient(var(--line) 1px, transparent 1px),
+  background:
+    linear-gradient(var(--line) 1px, transparent 1px),
     linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 28px 28px;
+  background-size: 32px 32px;
   background-position: -1px -1px;
 }
 
@@ -194,9 +195,7 @@ textarea::placeholder {
   display: flex;
   min-height: 0;
 }
-.rail {
-  display: none;
-}
+.rail,
 .aside {
   display: none;
 }
@@ -208,27 +207,27 @@ textarea::placeholder {
   min-height: 0;
 }
 
-/* Mobile bottom navigation */
+/* Mobile bottom navigation — flat, hairline top, inverted-marker active. */
 .tabbar {
   display: flex;
   border-top: 1px solid var(--line);
-  background: var(--panel);
+  background: var(--bg);
 }
 .tabbar button {
   flex: 1;
   background: transparent;
   border: none;
+  border-top: 2px solid transparent;
   color: var(--faint);
-  padding: 10px 4px 12px;
-  font-size: 9.5px;
-  letter-spacing: 0.12em;
+  padding: 9px 4px 11px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  border-top: 2px solid transparent;
 }
 .tabbar button.active {
   color: var(--fg);
@@ -239,7 +238,6 @@ textarea::placeholder {
   line-height: 1;
 }
 
-/* Desktop: left rail + right aside, no bottom tabbar */
 @media (min-width: 880px) {
   .tabbar {
     display: none;
@@ -268,8 +266,23 @@ textarea::placeholder {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+.scroll-y {
+  overflow-y: auto;
+  min-height: 0;
+}
+.fade-in {
+  animation: fade 0.18s linear;
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 
-/* Messages master-detail: pure-CSS responsive without JS media queries. */
+/* Messages master-detail (pure-CSS responsive). */
 .msg {
   display: flex;
   flex: 1;
@@ -292,8 +305,8 @@ textarea::placeholder {
 }
 @media (min-width: 880px) {
   .msg .msg-list {
-    flex: 0 0 290px;
-    width: 290px;
+    flex: 0 0 296px;
+    width: 296px;
     border-right: 1px solid var(--line);
     display: flex !important;
   }
@@ -310,21 +323,23 @@ textarea::placeholder {
 .row-item {
   width: 100%;
   display: flex;
-  gap: 11px;
+  gap: 12px;
   align-items: center;
   text-align: left;
   padding: 11px 12px;
+  margin: 2px 6px;
+  width: calc(100% - 12px);
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--line);
+  border-radius: var(--radius-sm);
   color: var(--fg);
   cursor: pointer;
 }
 .row-item:hover {
-  background: var(--panel-2);
+  background: var(--mat-1);
 }
 .row-item.sel {
-  background: var(--panel-3);
+  background: var(--mat-2);
 }
 
 .view-head {
@@ -334,15 +349,4 @@ textarea::placeholder {
   gap: 10px;
   padding: 13px 16px;
   border-bottom: 1px solid var(--line);
-}
-.scroll-y {
-  overflow-y: auto;
-  min-height: 0;
-}
-.fade-in {
-  animation: fade 0.25s ease;
-}
-@keyframes fade {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: none; }
 }

@@ -68,23 +68,21 @@ export function createMockBulletinClient(): BulletinClient {
 }
 
 /**
- * Stub for the real client. To be implemented with Polkadot-API (PAPI) + smoldot
- * (light client) to sign the `store` transaction on the Bulletin Chain.
+ * Real Bulletin Chain client. Implemented with Polkadot-API (PAPI) in
+ * ./bulletin-papi.ts (`TransactionStorage.store` + CIDv1). It needs a Substrate
+ * signer, so it's created explicitly rather than swapped in automatically:
  *
- *   import { createClient } from "polkadot-api";
- *   import { getSmProvider } from "polkadot-api/sm-provider";
- *   ...light-client connection (no centralized RPC).
+ *   import { createPapiBulletinClient } from "./bulletin-papi";
+ *   const client = createPapiBulletinClient(substrateSigner, wsUrl);
+ *
+ * Kept as a thin pointer here so the demo path never pulls PAPI into its bundle.
  */
-export function createSubstrateBulletinClient(_wsUrl: string): BulletinClient {
-  return {
-    async put() {
-      throw new Error(
-        "Real Bulletin Chain not wired yet: implement the `store` tx via Polkadot-API. " +
-          "For now use createMockBulletinClient().",
-      );
-    },
-    get: gatewayGet,
-  };
+export async function createSubstrateBulletinClient(
+  signer: unknown,
+  wsUrl: string,
+): Promise<BulletinClient> {
+  const { createPapiBulletinClient } = await import("./bulletin-papi");
+  return createPapiBulletinClient(signer, wsUrl);
 }
 
 async function fakeCid(payload: EncryptedPayload): Promise<string> {

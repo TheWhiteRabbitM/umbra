@@ -8,6 +8,15 @@ import {
   type KeyPair,
 } from "../lib/crypto";
 import { POLKADOT_HUB, makeTx, randomHex, type TxRecord } from "../lib/chain";
+import {
+  ensureRegistered,
+  sendDirectOnchain,
+  sendToChannelOnchain,
+  tipDirectOnchain,
+  registerAliasOnchain,
+  contextId,
+} from "../lib/onchain";
+import { sendAnonymousMail, relayConfigured } from "../lib/relay";
 import { contractsDeployed } from "../contracts";
 import type {
   ChatMessage,
@@ -101,7 +110,18 @@ export function useApp() {
       const conn = await connectWallet();
       setWallet(conn);
       const signature = await conn.signer.signMessage(KEY_DERIVATION_MESSAGE);
-      setKeypair(deriveEncryptionKeypair(signature));
+      const kp = deriveEncryptionKeypair(signature);
+      setKeypair(kp);
+
+      // Live mode: publish the encryption key on-chain if not registered yet.
+      if (contractsDeployed()) {
+        try {
+          const did = await ensureRegistered(conn.signer, kp);
+          if (did) simulateTx("IdentityRegistry.register", "IdentityRegistry");
+        } catch (e) {
+          console.warn("registration skipped:", e);
+        }
+      }
     } catch (e: any) {
       setError(e?.message ?? "connection failed");
     } finally {
@@ -115,6 +135,37 @@ export function useApp() {
   }, []);
 
   const active = conversations.find((c) => c.id === activeId) ?? null;
+
+  /** Start (or open) a direct conversation with an address or .dot-style name. */
+  const startConversation = useCallback(
+    (input: string): string | null => {
+      const v = input.trim();
+      if (!v) return null;
+      const isAddr = /^0x[0-9a-fA-F]{40}$/.test(v);
+      const address = isAddr ? v : `0x${randomHex(20).slice(2)}`;
+      const name = isAddr ? `${v.slice(0, 6)}…${v.slice(-4)}` : v;
+
+      const existing = conversations.find(
+        (c) => c.kind === "dm" && (c.peer?.address === address || c.title === name),
+      );
+      if (existing) {
+        setActiveId(existing.id);
+        return existing.id;
+      }
+      const id = `dm-${randomHex(4).slice(2)}`;
+      const convo: Conversation = {
+        id,
+        kind: "dm",
+        title: name,
+        peer: { address, name, personhood: false },
+        messages: [],
+      };
+      setConversations((prev) => [convo, ...prev]);
+      setActiveId(id);
+      return id;
+    },
+    [conversations],
+  );
 
   function patch(id: string, fn: (c: Conversation) => Conversation) {
     setConversations((prev) => prev.map((c) => (c.id === id ? fn(c) : c)));
@@ -136,15 +187,43 @@ export function useApp() {
       };
       patch(active.id, (c) => ({ ...c, messages: [...c.messages, optimistic] }));
       try {
-        const recipientKey = keypair?.publicKey ?? new Uint8Array(32);
-        const payload = encryptFor(text, recipientKey);
-        const cid = await bulletin.current.put(payload);
-        const method = active.kind === "channel" ? "Messenger.sendToChannel" : "Messenger.sendDirect";
-        const tx = simulateTx(method, "Messenger");
+        let cid: string;
+        let txHash: string;
+        if (liveMode && wallet && keypair && active.kind === "dm" && active.peer) {
+          // Real path: encrypt → Bulletin → Messenger.sendDirect on-chain.
+          const r = await sendDirectOnchain(
+            wallet.signer,
+            bulletin.current,
+            keypair,
+            active.peer.address,
+            text,
+            ttlSec ?? 0,
+          );
+          cid = r.cid;
+          txHash = r.txHash;
+        } else if (liveMode && wallet && active.kind === "channel") {
+          // Real path: encrypt to channel key → Bulletin → Messenger.sendToChannel.
+          const r = await sendToChannelOnchain(
+            wallet.signer,
+            bulletin.current,
+            contextId(`#${active.title}`),
+            text,
+            ttlSec ?? 0,
+          );
+          cid = r.cid;
+          txHash = r.txHash;
+        } else {
+          // Demo path: real encryption + mock Bulletin + simulated tx.
+          const recipientKey = keypair?.publicKey ?? new Uint8Array(32);
+          const payload = encryptFor(text, recipientKey);
+          cid = await bulletin.current.put(payload);
+          const method = active.kind === "channel" ? "Messenger.sendToChannel" : "Messenger.sendDirect";
+          txHash = simulateTx(method, "Messenger").hash;
+        }
         patch(active.id, (c) => ({
           ...c,
           messages: c.messages.map((mm) =>
-            mm.id === tempId ? { ...mm, cid, txHash: tx.hash, pending: false } : mm,
+            mm.id === tempId ? { ...mm, cid, txHash, pending: false } : mm,
           ),
         }));
       } catch (e: any) {
@@ -152,7 +231,7 @@ export function useApp() {
         patch(active.id, (c) => ({ ...c, messages: c.messages.filter((mm) => mm.id !== tempId) }));
       }
     },
-    [active, keypair, me.address, simulateTx],
+    [active, keypair, me.address, simulateTx, liveMode, wallet],
   );
 
   /** Burn a message (Messenger.burn + drop Bulletin renewal). */
@@ -172,35 +251,56 @@ export function useApp() {
 
   /** Send an in-chat tip (Payments.tip). */
   const sendTip = useCallback(
-    (amount: string) => {
+    async (amount: string) => {
       if (!active) return;
-      const tx = simulateTx("Payments.tip", "Payments");
+      let txHash: string;
+      try {
+        if (liveMode && wallet && active.kind === "dm" && active.peer) {
+          txHash = await tipDirectOnchain(wallet.signer, active.peer.address, amount);
+        } else {
+          txHash = simulateTx("Payments.tip", "Payments").hash;
+        }
+      } catch (e: any) {
+        setError(e?.message ?? "tip failed");
+        return;
+      }
       const msg: ChatMessage = {
         id: randomHex(6),
         from: me.address,
         text: "",
         sentAt: Date.now(),
         cid: "—",
-        txHash: tx.hash,
+        txHash,
         tip: { amount, symbol: POLKADOT_HUB.symbol },
       };
       patch(active.id, (c) => ({ ...c, messages: [...c.messages, msg] }));
     },
-    [active, me.address, simulateTx],
+    [active, me.address, simulateTx, liveMode, wallet],
   );
 
   /** Send an anonymous mail: sealed off-chain, relayed via Acurast TEE,
    *  delivered through AnonymousMail.deliver (no sender on-chain). */
   const sendMail = useCallback(
-    (subject: string, body: string, ttlSec = 1209600) => {
-      const tx = simulateTx("AnonymousMail.deliver", "AnonymousMail");
+    async (subject: string, body: string, to = "", ttlSec = 1209600) => {
+      let txHash = "";
+      // Live path: seal to recipient key → Acurast TEE relay → AnonymousMail.deliver.
+      if (liveMode && wallet && relayConfigured() && /^0x[0-9a-fA-F]{40}$/.test(to)) {
+        try {
+          await sendAnonymousMail(wallet.signer, to, subject, body, ttlSec);
+        } catch (e: any) {
+          setError(e?.message ?? "anonymous send failed");
+          return;
+        }
+      } else {
+        txHash = simulateTx("AnonymousMail.deliver", "AnonymousMail").hash;
+      }
       const item: MailMessage = {
         id: randomHex(6),
         subject,
         body,
         receivedAt: Date.now(),
         cid: `bafy-mail-${randomHex(4).slice(2)}`,
-        txHash: tx.hash,
+        txHash,
         relay: `acu-proc:${randomHex(2).slice(2).toUpperCase()}…${randomHex(2).slice(2).toUpperCase()}`,
         ttlSec,
         read: true,
@@ -208,7 +308,7 @@ export function useApp() {
       };
       setMail((mm) => [item, ...mm]);
     },
-    [simulateTx],
+    [simulateTx, liveMode, wallet],
   );
 
   const markMailRead = useCallback((id: string) => {
@@ -226,22 +326,36 @@ export function useApp() {
   /** Claim an unlinkable contextual alias for `context` (Individuality).
    *  Derives a fresh alias account + ring-VRF nullifier and registers it. */
   const claimAlias = useCallback(
-    (context: string, dim: 1 | 2 = 1) => {
+    async (context: string, dim: 1 | 2 = 1) => {
       if (aliases.some((a) => a.context === context)) return; // one alias per context
-      const tx = simulateTx("Individuality.registerAlias", "Individuality");
-      const alias = `0x${randomHex(2).slice(2)}…${randomHex(2).slice(2)}`;
+      let alias = `0x${randomHex(2).slice(2)}…${randomHex(2).slice(2)}`;
+      let nullifier = `0xnf:${randomHex(4).slice(2)}…${randomHex(4).slice(2)}`;
+      let txHash: string;
+      try {
+        if (liveMode && wallet && keypair) {
+          const r = await registerAliasOnchain(wallet.signer, keypair, context, dim);
+          nullifier = `${r.nullifier.slice(0, 10)}…${r.nullifier.slice(-6)}`;
+          alias = `${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}`;
+          txHash = r.txHash;
+        } else {
+          txHash = simulateTx("Individuality.registerAlias", "Individuality").hash;
+        }
+      } catch (e: any) {
+        setError(e?.message ?? "alias claim failed");
+        return;
+      }
       const item: ContextAlias = {
         id: randomHex(6),
         context,
         alias,
-        nullifier: `0xnf:${randomHex(4).slice(2)}…${randomHex(4).slice(2)}`,
+        nullifier,
         dim,
         since: Date.now(),
-        txHash: tx.hash,
+        txHash,
       };
       setAliases((a) => [item, ...a]);
     },
-    [aliases, simulateTx],
+    [aliases, simulateTx, liveMode, wallet, keypair],
   );
 
   const revokeAlias = useCallback(
@@ -275,6 +389,7 @@ export function useApp() {
     peopleRoot: PEOPLE_ROOT,
     connect,
     disconnect,
+    startConversation,
     sendMessage,
     burnMessage,
     sendTip,

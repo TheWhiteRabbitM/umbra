@@ -33,7 +33,7 @@ export function Identicon({ seed, size = 36 }: { seed: string; size?: number }) 
       height={size}
       viewBox={`0 0 ${size} ${size}`}
       aria-hidden
-      style={{ border: "1px solid var(--line-2)", borderRadius: Math.round(size * 0.28), overflow: "hidden" }}
+      style={{ border: "1px solid var(--line-2)", borderRadius: Math.round(size * 0.3), overflow: "hidden" }}
     >
       <rect width={size} height={size} fill="#000" />
       {grid.map((row, r) =>

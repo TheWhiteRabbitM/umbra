@@ -12,12 +12,31 @@ const TTL_PRESETS = [
 ];
 
 export function MessagesView({ store }: { store: AppStore }) {
-  const { conversations, active, activeId, setActiveId } = store;
+  const { conversations, active, activeId, setActiveId, startConversation } = store;
   const [open, setOpen] = useState(false); // mobile: thread open
+  const [query, setQuery] = useState("");
+  const [newOpen, setNewOpen] = useState(false);
+  const [newVal, setNewVal] = useState("");
 
   const openThread = (id: string) => {
     setActiveId(id);
     setOpen(true);
+  };
+
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? conversations.filter(
+        (c) => c.title.toLowerCase().includes(q) || (c.peer?.address ?? "").toLowerCase().includes(q),
+      )
+    : conversations;
+
+  const createChat = () => {
+    const id = startConversation(newVal);
+    if (id) {
+      setNewVal("");
+      setNewOpen(false);
+      setOpen(true);
+    }
   };
 
   return (
@@ -25,12 +44,30 @@ export function MessagesView({ store }: { store: AppStore }) {
       <div className="msg-list">
         <div className="view-head">
           <h2 style={{ fontSize: 15 }}>messages</h2>
-          <span className="tag on">{conversations.length}</span>
+          <button className="btn btn-sm" onClick={() => setNewOpen((v) => !v)}>+ new</button>
+        </div>
+        {newOpen && (
+          <div style={{ display: "flex", gap: 8, padding: "10px 12px", borderBottom: "1px solid var(--line)" }}>
+            <input
+              autoFocus
+              value={newVal}
+              onChange={(e) => setNewVal(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && createChat()}
+              placeholder="0x… or name.dot"
+            />
+            <button className="btn btn-primary btn-sm" disabled={!newVal.trim()} onClick={createChat}>start</button>
+          </div>
+        )}
+        <div style={{ padding: "10px 12px", borderBottom: "1px solid var(--line)" }}>
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="⌕ search conversations" />
         </div>
         <div className="scroll-y" style={{ flex: 1 }}>
-          {conversations.map((c) => (
+          {filtered.map((c) => (
             <ConversationRow key={c.id} c={c} selected={c.id === activeId} onClick={() => openThread(c.id)} />
           ))}
+          {filtered.length === 0 && (
+            <div style={{ padding: 14, fontSize: 11.5, color: "var(--faint)" }}>no conversations match "{query}".</div>
+          )}
         </div>
       </div>
 
@@ -196,11 +233,11 @@ function Bubble({ m, mine, onBurn }: { m: ChatMessage; mine: boolean; onBurn: ()
       style={{
         alignSelf: mine ? "flex-end" : "flex-start",
         maxWidth: "min(560px, 82%)",
-        background: mine ? "var(--inv-bg)" : "var(--panel-2)",
+        background: mine ? "var(--inv-bg)" : "transparent",
         color: mine ? "var(--inv-fg)" : "var(--fg)",
         border: mine ? "1px solid var(--inv-bg)" : "1px solid var(--line-2)",
         padding: "9px 13px",
-        borderRadius: mine ? "18px 18px 5px 18px" : "18px 18px 18px 5px",
+        borderRadius: mine ? "16px 16px 5px 16px" : "16px 16px 16px 5px",
       }}
     >
       <div className="sans" style={{ fontSize: 13.5, lineHeight: 1.45 }}>{m.text}</div>

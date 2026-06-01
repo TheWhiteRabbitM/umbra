@@ -28,11 +28,12 @@ export function Rail({ store }: { store: AppStore }) {
                 background: active ? "var(--inv-bg)" : "transparent",
                 color: active ? "var(--inv-fg)" : "var(--dim)",
                 border: "none",
-                borderRadius: "var(--radius-pill)",
+                borderRadius: "var(--radius-sm)",
                 cursor: "pointer",
                 fontWeight: active ? 700 : 500,
                 fontSize: 13,
                 letterSpacing: "0.01em",
+                transition: "background 0.1s linear, color 0.1s linear",
               }}
             >
               <span style={{ width: 16, textAlign: "center", fontSize: 14 }}>{item.glyph}</span>

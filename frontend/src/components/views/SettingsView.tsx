@@ -109,7 +109,7 @@ function Toggle({ label, desc, on, onClick, disabled, last }: { label: string; d
           position: "relative",
         }}
       >
-        <span style={{ position: "absolute", top: 1, bottom: 1, width: 16, borderRadius: "50%", left: on ? 19 : 1, background: on ? "var(--inv-fg)" : "var(--line-3)", transition: "left 0.12s" }} />
+        <span style={{ position: "absolute", top: 1, bottom: 1, width: 16, borderRadius: "50%", left: on ? 19 : 1, background: on ? "var(--inv-fg)" : "var(--line-3)", transition: "left 0.12s ease" }} />
       </span>
     </button>
   );
