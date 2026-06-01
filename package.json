@@ -13,6 +13,9 @@
     "contracts:build": "npm run build --workspace contracts",
     "contracts:deploy": "npm run deploy --workspace contracts",
     "shots": "node scripts/shots.mjs",
+    "video": "node scripts/video.mjs",
+    "mockup": "node scripts/mockup.mjs",
+    "promo": "node scripts/promo.mjs",
     "lint": "npm run lint --workspace frontend"
   },
   "engines": {
